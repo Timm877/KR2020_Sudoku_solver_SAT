@@ -28,13 +28,23 @@ def get_dimacs():
   sudokus_9x9_string = open('sudokus9x9.txt', 'r').read()
   first_sudoku = sudokus_9x9_string[:81]
 
-  # TODO: 
-  # convert first_sudoku string into dimacs format
-  # for every ., make a line with [rownum colnum 0 0]
+  #convert first_sudoku string into dimacs format
+  #for every ., make a line with [rownum colnum 0 0]
   # for every number, make a line with [rownum colnum number 0]
-  
 
-  # we have 1 example Dimacs file from Canvas!
+  dimacs_sudoku = ''
+  counter = 0
+  for row in range(1,10):
+    for column in range(1,10):  
+      if first_sudoku[counter].isdigit() == True:
+        dimacs_sudoku += (str(row) + ' ' +  str(column) + ' ' + first_sudoku[counter]  + ' 0\n')  
+      else:
+        dimacs_sudoku += (str(row) + ' ' +  str(column) + ' 0 0\n')
+      counter +=1 
+  print(dimacs_sudoku)   
+
+
+  # we have 1 example Dimacs file from Canvas
   example_sud_dimacs = open('sudoku_example_DIMACS.txt', 'r').read()
 
 
