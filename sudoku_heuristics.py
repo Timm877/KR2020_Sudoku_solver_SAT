@@ -10,7 +10,7 @@ def branching_heuristics_collection(heuristic):
     branching_heuristics = {
         'RANDOM': random_selection,
         'MOST_FREQUENT': most_frequent,
-        'JW': jeroslow_wang
+        'JEROSLOW_WANG': jeroslow_wang
     }
     try:
         return branching_heuristics[heuristic]
@@ -29,7 +29,7 @@ def get_literal_occurrence_frequency(cnf_formula):
                 counter[literal] = 1
     return counter
 
-
+#
 def get_weighted_frequency(cnf_formula, weight=2):
     counter = {}
     for clause in cnf_formula:
@@ -48,6 +48,12 @@ def unique_literals(cnf_formula: list()):
     unique_values = list(set(x for l in cnf_formula for x in l))
     return unique_values
 
+###
+# Compute for every clause ω and every variable l  (in each phase):
+# J(l) := Σ((2)^(-|ω|)) ∀l ∈ ω
+# Choose a variable l that maximizes J(l).
+# Which means that this strategy gives an exponentially higher weight to literals in shorter clauses.
+###
 def jeroslow_wang(cnf_formula):
     counter = get_weighted_frequency(cnf_formula)
     return max(counter, key=counter.get)
@@ -66,7 +72,9 @@ def main():
 
     most_frequent_heuristic = branching_heuristics_collection("MOST_FREQUENT")
     most_frequent = most_frequent_heuristic(cnf_formula)
+    assert most_frequent==111, "Most frequent literal is 111"
     print("The most frequent literal is ", most_frequent)
+
 
     ## Eventually, the heuristic function can be assigned dynamically can be available to the dpll function
     #  by being a class member (via constructor, if we stick to OOP here), or just passed as a parameter directly to the dpll function
