@@ -25,23 +25,23 @@ def get_dimacs():
   Output of the function is a big dimacs file containing rules + sudoku example'''
 
   # Get the first sudoku out of the txt file with 1000 9x9 sudoku's 
-  sudokus_9x9_string = open('sudokus9x9.txt', 'r').read()
-  first_sudoku = sudokus_9x9_string[:81]
+  # sudokus_9x9_string = open('sudokus9x9.txt', 'r').read()
+  # first_sudoku = sudokus_9x9_string[:81]
 
-  #convert first_sudoku string into dimacs format
-  #for every ., make a line with [rownum colnum 0 0]
-  # for every number, make a line with [rownum colnum number 0]
+  # #convert first_sudoku string into dimacs format
+  # #for every ., make a line with [rownum colnum 0 0]
+  # # for every number, make a line with [rownum colnum number 0]
 
-  dimacs_sudoku = ''
-  counter = 0
-  for row in range(1,10):
-    for column in range(1,10):  
-      if first_sudoku[counter].isdigit() == True:
-        dimacs_sudoku += (str(row) + ' ' +  str(column) + ' ' + first_sudoku[counter]  + ' 0\n')  
-      else:
-        dimacs_sudoku += (str(row) + ' ' +  str(column) + ' 0 0\n')
-      counter +=1 
-  print(dimacs_sudoku)   
+  # dimacs_sudoku = ''
+  # counter = 0
+  # for row in range(1,10):
+  #   for column in range(1,10):  
+  #     if first_sudoku[counter].isdigit() == True:
+  #       dimacs_sudoku += (str(row) + ' ' +  str(column) + ' ' + first_sudoku[counter]  + ' 0\n')  
+  #     else:
+  #       dimacs_sudoku += (str(row) + ' ' +  str(column) + ' 0 0\n')
+  #     counter +=1 
+  # print(dimacs_sudoku)   
 
 
   # we have 1 example Dimacs file from Canvas
@@ -66,7 +66,10 @@ def get_dimacs():
 
 # here we can call dpll, or GSAT, or Jeroslaw for our solution:
 # currently, we only have a dpll function
-full_problem1 = get_dimacs()
+# full_problem1 = dpll.get_dimacs(example_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sample.txt.txt',
+#                           rules_path=None)
+full_problem1 = dpll.get_dimacs(example_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_example_DIMACS.txt',
+                          rules_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_rules_DIMACS.txt')
 clauses1 = dimacs_to_cnf(full_problem1)
 solution_dpll = dpll.Solver(clauses1)
 
@@ -74,10 +77,19 @@ solution_dpll = dpll.Solver(clauses1)
 
 # uncomment the line below to see that this gives as output True, so the sudoku is solved
 # program is however sloooooow to give answer to this statement
-#print(solution_dpll.solve() == True)
 
+import time
+now = time.time()
+print('ANSWER:')
+print(solution_dpll.solve())
+print('--------------------------')
+print("SOLUTION:")
+print(solution_dpll.solution, len(solution_dpll.solution), len(set(solution_dpll.solution)))
+print('NUMBER OF ITERATIONS:')
+print(solution_dpll.iteration)
 
-
+print('TIME TAKEN:')
+print(time.time()-now)
 
 
 
