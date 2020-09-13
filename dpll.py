@@ -30,16 +30,18 @@ class Solver:
     def solve(self):
         return self.dpll(self.cnf,self.literals)
         
-    # def dpll(self,cnf,l):
+
     def dpll(self,cnf,literal, solution=[]):
+        """
+        Function implements dpll algo
+        """
+        #update and print branch number
         self.iteration+=1
         print(self.iteration, end = '\r')
 
         
-        #check unit clauses in cnf, remove unit clauses.
+ 
 
-        # if hasUnitClause(cnf):
-        #     cnf,literal =self.unit_p(cnf, literal)
         current_selection = []
 
         if self.debug_print:
@@ -51,6 +53,9 @@ class Solver:
             print('literals')
             print(literal)
 
+        #Set all literals in unit clauses to true
+        #Remove clauses that are true
+        # Remove true literals from all clauses 
         for clause in cnf:
             if len(clause) == 1:
                 cnf,literal,selected =self.unit_p(cnf, literal)
@@ -62,28 +67,24 @@ class Solver:
             print(cnf)
             print('literals')
             print(literal)
-        # for item in cnf:
-        #     if len(item)==1:
-        #         cnf,l=self.unit_p(cnf,l)
-                # break
+
         solution = solution+current_selection
         #check trivial cases
         if [] in cnf:
+            self.solution = list(set(solution))
             return False
         if not cnf:
             self.solution = list(set(solution))
             return True
-        # s=l
 
-        # s=literal
         #get the most common remaining literal (t) in cnf
         t=self.getMostCommonLiteral(cnf)
-        # cnf1=cnf
+       
         if self.debug_print:
             print('selected literal')
             print(t)
 
-        
+        #update solutions
         negated_branch_solution =  list(set(solution+current_selection+[-t]))
         
         solution = list(set(solution+current_selection+[t]))
@@ -91,6 +92,7 @@ class Solver:
         if t in literal:
             literal.remove(t)
         
+        #Split on t, try to solve the cnf with t and -t
         branch1,_=self.reduce(cnf,t)
         branch2,_=self.reduce(cnf,-t)
 
@@ -99,28 +101,23 @@ class Solver:
             print(branch1,'||', branch2 )
             print('current solutions')
             print(solution, '||' ,negated_branch_solution)
-        # if branch1 != branch2:
-        #     print('not same')
+
+
         if self.negated_first:
             return(self.dpll(branch2,literal, solution=negated_branch_solution) or self.dpll(branch1,literal,solution=solution))
         else:
             return(self.dpll(branch1,literal, solution=solution) or self.dpll(branch2,literal,solution=negated_branch_solution))
-    
-    # def unit_p(self,cnf,l):
-    def unit_p(self,cnf,literal):        
-        t1=0
-        # temp=[]
-        # =cnf
-        # s=l
-        # s=literal
-        # for item in t:
-        #     if len(item)==1:
-        #         t1=item[0]
 
-        # for item in t:
-        #     if t1 in item:
-        #         temp.append(item)
-        
+    def unit_p(self,cnf,literal):
+        """
+        Function selects a literal from from cnf list that is a unit clause
+        Reduces the cnf list with respect to selected literal
+        (Check reduce function for explanation)
+        removes selected literal from literal list
+        return new cnf, literal list, selected literal
+        """
+        t1=0
+
         #check for a unit clause and add to list
         #select literal from unit clause (t1)
         unit_clauses = []
@@ -129,52 +126,31 @@ class Solver:
             if len(clause)==1:
                 t1=clause[0]
                 break
-
+        
+        #reduce cnf with respect to literal (t1)
         _cnf, selected = self.reduce(cnf,t1)
-        # for clause in cnf:
-        #     if t1 in clause:
-        #         unit_clauses.append(clause)
-        #     else:
-        #         _cnf.append(clause)
 
-        # #create new cnf list with unit clause removed
-        # # if len(unit_clauses)>0:
-        # #     # t=[x for x in t if x not in temp]
-        # #     _cnf=[x for x in cnf if x not in unit_clauses]
-        # # for item in cnf:
-        # #     if (t1*-1) in item:
-        # #         temp=[]
-        # #         t.remove(item)
-        # #         t.append([x for x in item if x != -t1])
-        
-        # #remove all instances of negated literal (t1) in clauses in new cnf
-        # for clause in cnf:
-        #     if (t1*-1) in clause:
-        #         temp = []
-        #         _cnf.remove(clause)
-        #         _cnf.append([x for x in clause if x != -t1])
-                
-        # if t1 in s:
-        #     s.remove(t1)
-        # if -t1 in s:
-        #     s.remove(-t1)
-        
         #remove that literal (t1) from literal list
         if t1 in literal:
             literal.remove(t1)
         if -t1 in literal:
             literal.remove(-t1)
 
-        # return t,s
+        # return new cnf, literals, literals that were selected
         return (_cnf,literal, selected)
-        
-    # def reduced (self,cnf,t):        
+   
     def reduce(self,cnf,t):
+        """
+        Function takes in cnf and a literal t
+        Assumes literal t is in a unit clause
+        Sets literal t to true
+        Remove all unit clauses that contain literal t
+         Remove literal -t from all clauses
+         returns new cnf and t
+        """
         unit_clauses=[]
-        # t=cnf
-        # for item in t:
-            # if v in item:
-            #     temp.append(item)
+
+        # Remove all unit clauses that contain literal t
         _cnf =[]
         for clause in cnf:
             if t in clause:
@@ -182,18 +158,11 @@ class Solver:
             else:
                 _cnf.append(clause)
 
-        # if len(temp)>0:
-        #     _cnf=[x for x in cnf if x not in temp]
-
-        # for item in cnf:
-        #     if (v*-1) in item:
-        #         temp=[]
-        #         t.remove(item)
-        #         t.append([x for x in item if x != -v])
-
+        
+        # Remove literal -t from all clauses
         for clause in cnf:
             if (t*-1) in clause:
-                temp = []
+
                 _cnf.remove(clause)
                 _cnf.append([x for x in clause if x != -t])
 
@@ -202,11 +171,14 @@ class Solver:
         
     
     def getMostCommonLiteral(self,cnf):
-        merged = list(itertools.chain(*cnf))      #most frequent item
+        """
+        Finds and returns the literal that occurs the most in cnf
+        """
+        merged = list(itertools.chain(*cnf))    
         if len(merged)>0:
             return max(set(merged), key=merged.count)
         else:
-            self.ou=True     #length of senetence is 0
+            self.ou=True     
 
 
 
