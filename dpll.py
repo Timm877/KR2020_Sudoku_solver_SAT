@@ -14,6 +14,7 @@ class split:
 
 class Solver:
     def __init__(self, cnf):
+        self.sudoku_solution = []
         self.iteration = 0
         self.negated_first=True
         #get clasuses in cnf form
@@ -26,6 +27,9 @@ class Solver:
                 if i not in self.literals:
                     self.literals.append(i)
         self.debug_print = False
+
+    def getSudokuSolution(self,solution):
+        return([i for i in solution if i > 0])
 
     def solve(self):
         return self.dpll(self.cnf,self.literals)
@@ -72,9 +76,11 @@ class Solver:
         #check trivial cases
         if [] in cnf:
             self.solution = list(set(solution))
+            self.sudoku_solution = self.getSudokuSolution(list(set(solution)))
             return False
         if not cnf:
             self.solution = list(set(solution))
+            self.sudoku_solution = self.getSudokuSolution(list(set(solution)))
             return True
 
         #get the most common remaining literal (t) in cnf
@@ -85,9 +91,9 @@ class Solver:
             print(t)
 
         #update solutions
-        negated_branch_solution =  list(set(solution+current_selection+[-t]))
+        negated_branch_solution =  list(set(solution+[-t]))
         
-        solution = list(set(solution+current_selection+[t]))
+        solution = list(set(solution+[t]))
         # remove selected literal from list of literals
         if t in literal:
             literal.remove(t)

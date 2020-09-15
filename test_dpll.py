@@ -1,33 +1,54 @@
-import glob
-import random
-import dpll
+# some_file.py
+import sys
+# insert at 1, 0 is the script path (or '' in REPL)
+# sys.path.insert(1, r'F:\Documents\VU\KR\Sudoku_solver_group3')
 
-# here we can call dpll, or GSAT, or Jeroslaw for our solution:
-# currently, we only have a dpll function
-# full_problem1 = dpll.get_dimacs(example_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sample.txt.txt',
-#                           rules_path=None)
-full_problem1 = dpll.get_dimacs(example_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_example_DIMACS.txt',
+from dpll import *
+from draw_sudoku import *
+
+full_problem = get_dimacs(example_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_example_DIMACS.txt',
                           rules_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_rules_DIMACS.txt')
-clauses1 = dpll.dimacs_to_cnf(full_problem1)
-solution_dpll = dpll.Solver(clauses1)
 
-#TODO: get the output sudoku..
+cnf = dimacs_to_cnf(full_problem)
 
-# uncomment the line below to see that this gives as output True, so the sudoku is solved
-# program is however sloooooow to give answer to this statement
+initial_problem = dimacs_to_cnf(get_dimacs(example_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_example_DIMACS.txt',
+                          rules_path=None))
+
+initial_problem = [item for sublist in initial_problem for item in sublist]
 
 import time
 now = time.time()
+solution_dpll_negated_first = Solver(cnf)
+print('ANSWER:')
+print(solution_dpll_negated_first.solve())
+print('--------------------------')
+
+print('NUMBER OF ITERATIONS:')
+print(solution_dpll_negated_first.iteration)
+
+print('TIME TAKEN:')
+print(time.time()-now)
+print('-----------------------------')
+
+# import time
+now = time.time()
+solution_dpll = Solver(cnf)
+solution_dpll.negated_first=False
 print('ANSWER:')
 print(solution_dpll.solve())
 print('--------------------------')
-print("SOLUTION:")
-print(solution_dpll.solution, len(solution_dpll.solution) )
+
 print('NUMBER OF ITERATIONS:')
 print(solution_dpll.iteration)
 
 print('TIME TAKEN:')
 print(time.time()-now)
 
+board = draw(filename='solution_negated_first')
+board.draw(solution_dpll_negated_first.sudoku_solution)
 
+board = draw(filename='solution_positive_first')
+board.draw(solution_dpll.sudoku_solution)
 
+board = draw(filename='original_problem')
+board.draw(initial_problem)
