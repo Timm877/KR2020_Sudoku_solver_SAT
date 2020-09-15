@@ -6,12 +6,16 @@ import sys
 from dpll import *
 from draw_sudoku import *
 
-full_problem = get_dimacs(example_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_example_DIMACS.txt',
-                          rules_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_rules_DIMACS.txt')
+#sud_txt_to_dimacs(example_path=r"C:\Users\Tim de Boer\Desktop\Coderen\Sudoku_solver_group3\Sudoku_solver_group3\sudokus9x9.txt")
+# txt files are already in the folders.
+
+full_problem = get_dimacs(example_path=r'sud_examples\sudoku_2',
+                          rules_path=r'sudoku_rules_DIMACS.txt')
 
 cnf = dimacs_to_cnf(full_problem)
 
-initial_problem = dimacs_to_cnf(get_dimacs(example_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_example_DIMACS.txt',
+
+initial_problem = dimacs_to_cnf(get_dimacs(example_path=r'sud_examples\sudoku_2',
                           rules_path=None))
 
 initial_problem = [item for sublist in initial_problem for item in sublist]
