@@ -187,7 +187,6 @@ class Solver:
             self.ou=True     
 
 
-
 def dimacs_to_cnf(full_problem):
   '''This function converts a dimacs file to a cnf statement'''
 
@@ -202,32 +201,44 @@ def dimacs_to_cnf(full_problem):
 
 
 def get_dimacs(example_path='sudoku_example_DIMACS.txt', rules_path='sudoku_rules_DIMACS.txt'):
-  
-  '''This function reads sudoku9x9.txt (txtfile with 1000 9x9 sudoku's) and will translate it to DIMACS
-  Every point in that file equals 0; every number is a given number in the sudoku
-  So 1 9x9 sudoku are the first 81 characters in the file.
-  It also reads the rules of sudoku as Dimacs
+  '''Reads initial problem + rules of sudoku and outputs dimacs file containing rules + sudoku example'''
 
-  Output of the function is a big dimacs file containing rules + sudoku example'''
+  sud_dimacs = open(example_path, 'r').read()
 
-
-
-  # we have 1 example Dimacs file from Canvas
-  example_sud_dimacs = open(example_path, 'r').read()
-
-
-  # load in the constraints / rules
-  # (1 independent number in every place, 1 independent number in every row, every column and every square)
   rules_string = ''
+   
   if rules_path:
     rules_string = open(rules_path, 'r').read()
-  
 
-  # rules_string is already in DIMACS, no need to change anything for it.
-  # we want to solve a combination of the constraint with the given numbers of the sudoku with DPLL
-  # so I think our cnf problem statement should be: rules + given_numbers
-  # full_problem = rules_string + sudoku_given numbers
-  # for the example sudoku:
-  full_problem = example_sud_dimacs + rules_string
+  full_problem = sud_dimacs + rules_string 
 
   return full_problem
+
+
+def sud_txt_to_dimacs(example_path='top95.sdk.txt'):
+    '''This function reads .txt (txtfile one line of 81 characters per puzzle, '.' for free space)
+    Translate txtfile to DIMACS. Puts Dimacs file in folder sud_examples
+    top95.sdk.txt is a set of 95 "hard" puzzles, favoured benchmark set of a web forum for sudokus'''
+
+    all_sudokus = open(example_path, 'r').read()
+    all_sudokus = all_sudokus.split("\n")
+    sudnr = 1
+
+    for sudoku in all_sudokus:
+        sud_file = open(r'C:\Users\Tim de Boer\Desktop\Coderen\Sudoku_solver_group3\Sudoku_solver_group3\sud_examples\sudoku_%d'%sudnr, 'w+')
+        row = 1
+        column = 1
+
+        for place in sudoku:
+            if place.isdigit():
+                sud_file.write(str(row) + str(column) + str(place) + ' 0\n')   
+
+            column += 1
+
+            if column == 10:
+                column = 1
+                row += 1    
+            
+        sudnr += 1
+
+    return all_sudokus
