@@ -2,8 +2,8 @@ import pygame
 
 import sys
 
-class draw:
-    def __init__(self, filename = 'sudoku'):
+class Draw:
+    def __init__(self):
         self.BLACK = (25,25,25)
         self.WHITE = (250, 250, 250)
         self.BLUE=(0,0,255)
@@ -12,11 +12,11 @@ class draw:
         self.SCREEN = None
         self.CLOCK = None
         
-        self.filename = filename+'.jpg'
+        # self.filename = filename+'.jpg'
         
 
 
-    def draw(self, solution):
+    def draw(self, solution, filename):
 
         pygame.init()
         self.SCREEN = pygame.display.set_mode((self.WINDOW_HEIGHT, self.WINDOW_WIDTH))
@@ -26,7 +26,7 @@ class draw:
             self.drawGrid(solution)
             rect = pygame.Rect(0, 0, self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
             sub = self.SCREEN.subsurface(rect)
-            pygame.image.save(sub, self.filename)
+            pygame.image.save(sub, filename)
             # sys.exit()
             break
 

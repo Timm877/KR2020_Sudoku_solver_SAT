@@ -22,17 +22,31 @@ from typing import List, Any
 
 
 def branching_heuristics_collection(heuristic):
-    branching_heuristics = {
-        'RANDOM': random_selection,
-        'DLCS': dynamic_largest_combined_sum, #AKA: most frequent (unsigned) variable
-        'DLIS': dynamic_largest_individual_sum,
-        'JEROSLOW_WANG': jeroslow_wang
-    }
+    
     try:
         return branching_heuristics[heuristic]
     except:
         sys.exit("ERROR: '{}' Unknown/Unimplemented branching heuristic.".format(heuristic) +
                  "\nImplemented heuristics: {}".format(branching_heuristics.keys()))
+
+
+
+def getMostCommonLiteralPositive(cnf):
+        """
+        Finds and returns the literal that occurs the most in cnf
+        """
+        merged = list(itertools.chain(*cnf))    
+        
+        return max(set(merged), key=merged.count)
+
+def getMostCommonLiteralNegative(cnf):
+        """
+        Finds and returns the negative of literal that occurs the most in cnf
+        """
+        merged = list(itertools.chain(*cnf))    
+        
+        return max(set(merged), key=merged.count)*-1
+         
 
 
 def get_literal_occurrence_frequency(cnf_formula):
@@ -82,28 +96,37 @@ def dynamic_largest_individual_sum(cnf_formula):
 def dynamic_largest_combined_sum(cnf_formula):
     return get_absolute_literal_occurrence_frequency(cnf_formula)
 
+branching_heuristics = {
+        'RANDOM': random_selection,
+        'DLCS': dynamic_largest_combined_sum, #AKA: most frequent (unsigned) variable
+        'DLIS': dynamic_largest_individual_sum,
+        'JEROSLOW_WANG': jeroslow_wang,
+        'most_common_positive':
+        getMostCommonLiteralPositive,
+        'most_common_negative':getMostCommonLiteralNegative
+    }
+heuristic_list = list(branching_heuristics.keys())
 
+# def main():
+#     cnf_formula = [-111, -112], [-111, 122, 123, -112], [-111, 114, -112], [121, 123, -111], [-123, 144, -112], [-111], [144, 112], [112],[112,156,167, 111]
 
-def main():
-    cnf_formula = [-111, -112], [-111, 122, 123, -112], [-111, 114, -112], [121, 123, -111], [-123, 144, -112], [-111], [144, 112], [112],[112,156,167, 111]
+#     random_heuristic = branching_heuristics_collection("RANDOM")
+#     lucky_literal = random_heuristic(cnf_formula)
+#     print("The lucky literal is ", lucky_literal)
 
-    random_heuristic = branching_heuristics_collection("RANDOM")
-    lucky_literal = random_heuristic(cnf_formula)
-    print("The lucky literal is ", lucky_literal)
+#     most_frequent_heuristic = branching_heuristics_collection("DLCS")
+#     most_frequent_combined = most_frequent_heuristic(cnf_formula)
+#     print("The most frequent combined sum literal is ", most_frequent_combined)
+#     assert most_frequent_combined==112, "Most DLCS frequent (combined sum) literal is -112"
 
-    most_frequent_heuristic = branching_heuristics_collection("DLCS")
-    most_frequent_combined = most_frequent_heuristic(cnf_formula)
-    print("The most frequent combined sum literal is ", most_frequent_combined)
-    assert most_frequent_combined==112, "Most DLCS frequent (combined sum) literal is -112"
-
-    most_frequent_heuristic = branching_heuristics_collection("DLIS")
-    most_frequent_individual = most_frequent_heuristic(cnf_formula)
-    assert most_frequent_individual==-111, "Most DLIS frequent (individual sum) literal is 111"
-    print("The most frequent individual sum literal is ", most_frequent_individual)
+#     most_frequent_heuristic = branching_heuristics_collection("DLIS")
+#     most_frequent_individual = most_frequent_heuristic(cnf_formula)
+#     assert most_frequent_individual==-111, "Most DLIS frequent (individual sum) literal is 111"
+#     print("The most frequent individual sum literal is ", most_frequent_individual)
 
 
     ## Eventually, the heuristic function can be assigned dynamically can be available to the dpll function
     #  by being a class member (via constructor, if we stick to OOP here), or just passed as a parameter directly to the dpll function
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

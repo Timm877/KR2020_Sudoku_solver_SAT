@@ -1,6 +1,9 @@
 import itertools
 import glob
 import random
+import time
+import sudoku_heuristics
+import draw_sudoku
 
 def hasUnitClause(cnf):
     for clause in cnf:
@@ -12,11 +15,52 @@ class split:
     def __init__(self,cnf,literal,branch):
         pass
 
+def run_dpll(problem_path, hueristic, rule_path = None,  verbose = False, draw=True):
+    full_problem = get_dimacs(example_path=problem_path,
+                          rules_path=rule_path)
+    
+    cnf = dimacs_to_cnf(full_problem)
+
+    start = time.time()
+    chosen_huerestic = sudoku_heuristics.branching_heuristics_collection(hueristic)
+    solver = Solver(cnf, hueristic= chosen_huerestic)
+    solver.debug_print = verbose
+    print(f'SOlving DPLL with huerestic: {hueristic}')
+    print('ANSWER:')
+    print(solver.solve())
+    print('--------------------------')
+    print('NUMBER OF ITERATIONS:')
+    print(solver.iteration)
+    
+    print('TIME TAKEN:')
+    print(time.time()-start)
+    print(f'Average clause-literal ratio over all executed branches: {solver.avg_ratio}')
+    if draw:
+        board = draw_sudoku.Draw()
+        solved_board = f"{hueristic}.jpg"
+        initial_board = f'{hueristic}_initial_problem.jpg'
+        board.draw(solver.sudoku_solution,filename=solved_board)
+        
+        initial_problem = dimacs_to_cnf(get_dimacs(example_path=problem_path,
+                                rules_path=None))
+
+        initial_problem = [item for sublist in initial_problem for item in sublist] 
+    
+        # initial_board = draw_sudoku.Draw()
+        board.draw(initial_problem,filename=initial_board)
+
+        print(f'Solution output: {solved_board}\nInitial problem: {initial_board}')
+
+
 class Solver:
-    def __init__(self, cnf):
+    def __init__(self, cnf,
+                 hueristic = sudoku_heuristics.getMostCommonLiteralNegative ):
+        self.hueristic = hueristic
         self.sudoku_solution = []
         self.iteration = 0
-        self.negated_first=True
+        self.result = None
+        self.avg_ratio = 0.0
+        
         #get clasuses in cnf form
         self.cnf=[list(i) for i in cnf]
         self.solution=[]
@@ -65,26 +109,35 @@ class Solver:
                 cnf,literal,selected =self.unit_p(cnf, literal)
                 current_selection.append(selected)
 
+        n_cnf = len(cnf)
+        n_literal = len(literal)
+        ratio = n_cnf / n_literal
+        self.avg_ratio = self.avg_ratio + ratio
         if self.debug_print:
             print('unit clauses and pure literals processed')
             print('cnf')
             print(cnf)
             print('literals')
             print(literal)
+            print(f'Current clause - literal ratio: {ratio}')
 
         solution = solution+current_selection
         #check trivial cases
         if [] in cnf:
             self.solution = list(set(solution))
             self.sudoku_solution = self.getSudokuSolution(list(set(solution)))
+            self.result = False
+            self.avg_ratio = self.avg_ratio / self.iteration
             return False
         if not cnf:
             self.solution = list(set(solution))
             self.sudoku_solution = self.getSudokuSolution(list(set(solution)))
+            self.result = True
+            self.avg_ratio = self.avg_ratio / self.iteration
             return True
 
-        #get the most common remaining literal (t) in cnf
-        t=self.getMostCommonLiteral(cnf)
+        #select literal using chosen
+        t=self.hueristic(cnf)
        
         if self.debug_print:
             print('selected literal')
@@ -109,10 +162,8 @@ class Solver:
             print(solution, '||' ,negated_branch_solution)
 
 
-        if self.negated_first:
-            return(self.dpll(branch2,literal, solution=negated_branch_solution) or self.dpll(branch1,literal,solution=solution))
-        else:
-            return(self.dpll(branch1,literal, solution=solution) or self.dpll(branch2,literal,solution=negated_branch_solution))
+       
+        return(self.dpll(branch1,literal, solution=solution) or self.dpll(branch2,literal,solution=negated_branch_solution))
 
     def unit_p(self,cnf,literal):
         """
@@ -176,16 +227,7 @@ class Solver:
         return _cnf,t
         
     
-    def getMostCommonLiteral(self,cnf):
-        """
-        Finds and returns the literal that occurs the most in cnf
-        """
-        merged = list(itertools.chain(*cnf))    
-        if len(merged)>0:
-            return max(set(merged), key=merged.count)
-        else:
-            self.ou=True     
-
+    
 
 def dimacs_to_cnf(full_problem):
   '''This function converts a dimacs file to a cnf statement'''
