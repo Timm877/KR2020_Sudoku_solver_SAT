@@ -1,0 +1,45 @@
+Introduction}
+\subsection{Propositional Satisfiability}
+Propositional Satisfiability (SAT) is a core problem in Artificial Intelligence, as well as in many other areas of Computer Science and Engineering. Given a set of propositional variables and a set of constraints expressed in conjunctive normal form (CNF)), the goal of a SAT problem is finding a variable assignment that satisfies all constraints or prove that no such assignment exists [1].
+
+The SAT solver that is used in this paper is based on 
+the original Davis–Putnam–
+Logemann–Loveland (DPLL) backtrack search algorithm. The algorithm performs a search process that.....
+
+
+\subsubsection{Design desicions} the important design decisions for our SAT solver (both how and why). 
+
+\subsubsection{Decision heuristics} We implemented two SAT-based heuristics to solve the SAT problem. The algorithm presented can be adapted to any SAT solver. 
+
+\paragraph{DLIS} The first heuristic we implemented is Dynamic Largest Individual Sum (DLCS)...... 
+\paragraph{DLCS} The second heuristic we implemented is Dynamic Largest Combined Sum (DLCS)..... 
+%
+\subsection{Experiment} In this paper we use our SAT-solver to solve a 9 x 9 Sudoku. For a partially filled 9 × 9 grid, the goal is to place numbers 1 to 9 to each cell in such a way that in each row, column, and 3 × 3 sub-grid, each number occurs exactly once...Question is if....
+
+\subsubsection{Hypothese} Based on...we suggest that:
+(potential) hypothese 1. 
+
+\subsubsection{Relevance}This is interesting because it gives us insight into human cognition and thinking. It also has important applications in human-computer collaboration and training of problem solving skills, e.g., for developing intelligent tutoring systems [2] 
+% 
+%
+%
+
+
+\section{Method}
+Please note that the first paragraph of a section or subsection is
+not indented. The first paragraph that follows a table, figure,
+equation etc. does not need an indent, either.
+
+\subsection{Conditions}
+Please note that the first paragraph of a section or subsection is
+not indented. The first paragraph that follows a table, figure,
+equation etc. does not need an indent, either.
+
+Subsequent paragraphs, however, are indented.
+
+\subsection{Measurements}
+Please note that the first paragraph of a section or subsection is
+not indented. The first paragraph that follows a table, figure,
+equation etc. does not need an indent, either.
+
+\section{Results}
