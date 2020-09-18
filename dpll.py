@@ -6,7 +6,7 @@ import sudoku_heuristics
 import draw_sudoku
 import statistics
 from collections import Counter
-
+from copy import deepcopy
 
 def get_all_modes(a):
     c = Counter(a)  
@@ -123,11 +123,11 @@ class Solver:
         self.cnf=[list(i) for i in cnf]
         self.solution=[]
         #get literals
-        self.literals = []
-        for item in  self.cnf:
-            for i in item:
-                if i not in self.literals:
-                    self.literals.append(i)
+        self.literals = [item for sublist in self.cnf for item in sublist] 
+        # for item in  self.cnf:
+        #     for i in item:
+        #         if i not in self.literals:
+        #             self.literals.append(i)
         self.debug_print = False
         self.stats['initial_n_cnf'] = len(self.cnf)
         self.stats['initial_n_literal'] = len(self.literals)
@@ -191,6 +191,14 @@ class Solver:
 
 
     def dpll(self,cnf,literal, solution=[]):
+        # self.updateStats(cnf,literal)
+        # #check trivial cases
+        # if [] in cnf:
+        #     self.collateResults(False, solution)
+        #     return False
+        # if not cnf:
+        #     self.collateResults(True, solution)
+        #     return True
         """
         Function implements dpll algo
         """
@@ -199,7 +207,7 @@ class Solver:
         print(f'Iteration number: {self.iteration}', end = '\r')
 
         
- 
+
 
         current_selection = []
 
@@ -215,10 +223,20 @@ class Solver:
         #Set all literals in unit clauses to true
         #Remove clauses that are true
         # Remove true literals from all clauses 
-        for clause in cnf:
-            if len(clause) == 1:
-                cnf,literal,selected =self.unit_p(cnf, literal)
-                current_selection.append(selected)
+        # while self.unitClauseExists(cnf):
+        #         cnf,literal,selected =self.unitPropogation(cnf, literal)
+        #         current_selection.append(selected)
+
+        #Remove tautology
+        cnf, literal = self.removeTautology(cnf,literal)
+        
+        #Do unit propogation
+        cnf,literal,selected =self.unitPropogation(cnf, literal)
+        current_selection = current_selection+selected  
+
+        #set pure literals to true
+        # cnf,literal,_selected =self.setPureLiteral(cnf, literal)
+        # current_selection = current_selection+_selected   
 
         self.updateStats(cnf,literal)
         if self.debug_print:
@@ -250,12 +268,18 @@ class Solver:
         
         solution = list(set(solution+[t]))
         # remove selected literal from list of literals
-        if t in literal:
-            literal.remove(t)
+        # literal_1 = literal
+        # literal_2 = deepcopy(literal) 
+
+        # if t in literal_1:
+        #     literal_1.remove(t)
+
+        # if -t in literal_2:
+        #     literal_2.remove(-t)
         
         #Split on t, try to solve the cnf with t and -t
-        branch1,_=self.reduce(cnf,t)
-        branch2,_=self.reduce(cnf,-t)
+        branch1,literal_1,_=self.reduce(cnf,literal,t)
+        branch2,literal_2,_=self.reduce(cnf,literal,-t)
 
         if self.debug_print:
             print('branch')
@@ -265,47 +289,47 @@ class Solver:
 
 
        
-        return(self.dpll(branch1,literal, solution=solution) or self.dpll(branch2,literal,solution=negated_branch_solution))
+        return(self.dpll(branch1,literal_1, solution=solution) or self.dpll(branch2,literal_2,solution=negated_branch_solution))
 
-    def unit_p(self,cnf,literal):
-        """
-        Function selects a literal from from cnf list that is a unit clause
-        Reduces the cnf list with respect to selected literal
-        (Check reduce function for explanation)
-        removes selected literal from literal list
-        return new cnf, literal list, selected literal
-        """
-        t1=0
-
-        #check for a unit clause and add to list
-        #select literal from unit clause (t1)
-        unit_clauses = []
-        _cnf = []
-        for clause in cnf[::-1]:
+    def unitClauseExists(self,cnf):
+        for clause in cnf:
             if len(clause)==1:
-                t1=clause[0]
-                break
-        
-        #reduce cnf with respect to literal (t1)
-        _cnf, selected = self.reduce(cnf,t1)
+                return True
+        return False
 
-        #remove that literal (t1) from literal list
-        if t1 in literal:
-            literal.remove(t1)
-        if -t1 in literal:
-            literal.remove(-t1)
-
-        # return new cnf, literals, literals that were selected
-        return (_cnf,literal, selected)
-   
-    def reduce(self,cnf,t):
+    def unitPropogation(self,cnf,literal):
         """
-        Function takes in cnf and a literal t
-        Assumes literal t is in a unit clause
-        Sets literal t to true
-        Remove all unit clauses that contain literal t
-         Remove literal -t from all clauses
-         returns new cnf and t
+        Set all litreal in unit clauses to true
+        Do unit propogation
+        """
+        selected = []
+        while self.unitClauseExists(cnf):
+            t1=0
+
+            #check for a unit clause and add to list
+            #select literal from unit clause (t1)
+            unit_clauses = []
+            _cnf = []
+            for clause in cnf[::-1]:
+                if len(clause)==1:
+                    t1=clause[0]
+                    break
+            
+            #reduce cnf with respect to literal (t1)
+            cnf, literal, t1 = self.reduce(cnf,literal,t1)
+            selected.append(t1)
+            #remove that literal (t1) from literal list
+            if t1 in literal:
+                literal.remove(t1)
+
+
+            # return new cnf, literals, literals that were selected
+        return (cnf,literal, selected)
+   
+    def reduce(self,cnf,literal,t):
+        """
+        Assumes literal t is true
+        does unit propogation after setting t to true
         """
         unit_clauses=[]
 
@@ -325,11 +349,34 @@ class Solver:
                 _cnf.remove(clause)
                 _cnf.append([x for x in clause if x != -t])
 
+        if t in literal:
+                literal.remove(t)
         
-        return _cnf,t
+        return _cnf,literal,t
         
+    def isTautology(self,clause):
+        for literal in clause:
+            if -literal in clause:
+                return(True)
+        return(False)    
     
-    
+    def removeTautology(self,cnf,literal):
+        for clause in cnf:
+            # t = isTautology(clause):
+            if self.isTautology(clause):
+                cnf.remove(clause)
+        literal = list(set([item for sublist in cnf for item in sublist] ))
+        return(cnf,literal)
+
+
+    def setPureLiteral(self,cnf,literal):
+        selection = []
+        for t in literal:
+            if not -t in literal:
+                cnf, literal, selected = self.reduce(cnf,literal,t)
+                selection.append(t)
+        return(cnf,literal,selection)
+
 
 def dimacs_to_cnf(full_problem):
   '''This function converts a dimacs file to a cnf statement'''
