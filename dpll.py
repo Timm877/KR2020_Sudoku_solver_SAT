@@ -4,6 +4,15 @@ import random
 import time
 import sudoku_heuristics
 import draw_sudoku
+import statistics
+from collections import Counter
+
+
+def get_all_modes(a):
+    c = Counter(a)  
+    mode_count = max(c.values())
+    mode = {key for key, count in c.items() if count == mode_count}
+    return list(mode)[0]
 
 def hasUnitClause(cnf):
     for clause in cnf:
@@ -15,26 +24,35 @@ class split:
     def __init__(self,cnf,literal,branch):
         pass
 
-def run_dpll(problem_path, hueristic, rule_path = None,  verbose = False, draw=True):
+def run_dpll(problem_path, hueristic, rule_path = None,  verbose = False, draw=False, show_stats=True):
     full_problem = get_dimacs(example_path=problem_path,
                           rules_path=rule_path)
     
     cnf = dimacs_to_cnf(full_problem)
 
-    start = time.time()
+    if show_stats:
+        start = time.time()
     chosen_huerestic = sudoku_heuristics.branching_heuristics_collection(hueristic)
     solver = Solver(cnf, hueristic= chosen_huerestic)
     solver.debug_print = verbose
-    print(f'SOlving DPLL with huerestic: {hueristic}')
-    print('ANSWER:')
-    print(solver.solve())
-    print('--------------------------')
-    print('NUMBER OF ITERATIONS:')
-    print(solver.iteration)
     
-    print('TIME TAKEN:')
-    print(time.time()-start)
-    print(f'Average clause-literal ratio over all executed branches: {solver.avg_ratio}')
+    if show_stats:
+        print(f'SOlving DPLL with huerestic: {hueristic}')
+    
+    solver.solve()
+    stats = solver.getRelevantStats()
+    if show_stats:
+        print('ANSWER:')
+        print(solver.result)
+        print('--------------------------')
+        print('NUMBER OF ITERATIONS:')
+        print(solver.iteration)
+        
+        print('TIME TAKEN:')
+        print(time.time()-start)
+        print('Relevant Statistics:')
+        print(stats)
+    
     if draw:
         board = draw_sudoku.Draw()
         solved_board = f"{hueristic}.jpg"
@@ -51,6 +69,7 @@ def run_dpll(problem_path, hueristic, rule_path = None,  verbose = False, draw=T
 
         print(f'Solution output: {solved_board}\nInitial problem: {initial_board}')
 
+    return(solver,solver.result,stats)
 
 class Solver:
     def __init__(self, cnf,
@@ -59,7 +78,46 @@ class Solver:
         self.sudoku_solution = []
         self.iteration = 0
         self.result = None
-        self.avg_ratio = 0.0
+        self.stats = {
+            'n_cnf': [],
+            'n_literal' : [],
+            'n_ratio': [],
+
+            'avg_n_cnf': 0.0,
+            'avg_n_literal': 0.0,
+            'avg_n_ratio': 0.0,
+
+            'mode_n_cnf': 0.0,
+            'mode_n_literal': 0.0,
+            'mode_n_ratio': 0.0,
+
+            'median_n_cnf':0.0,
+            'median_n_literal': 0.0,
+            'median_n_ratio': 0.0,
+
+            'ratio_of_avgs': 0.0,
+            'ratio_of_modes':0.0,
+            'ratio_of_medians': 0.0
+   
+        }
+
+        self.relevant_stats = [
+            'n_iterations',
+            'initial_n_cnf',
+            'initial_n_literal',
+            'avg_n_cnf',
+            'avg_n_literal',
+            'avg_n_ratio',
+            'mode_n_cnf',
+            'mode_n_literal',
+            'mode_n_ratio',
+            'median_n_cnf',
+            'median_n_literal',
+            'median_n_ratio',
+            'ratio_of_avgs',    
+            'ratio_of_modes',
+            'ratio_of_medians'        
+        ]
         
         #get clasuses in cnf form
         self.cnf=[list(i) for i in cnf]
@@ -71,6 +129,15 @@ class Solver:
                 if i not in self.literals:
                     self.literals.append(i)
         self.debug_print = False
+        self.stats['initial_n_cnf'] = len(self.cnf)
+        self.stats['initial_n_literal'] = len(self.literals)
+
+    def getRelevantStats(self):
+        _dict = {}
+        for key in self.relevant_stats:
+            _dict[key] = self.stats[key]
+        return(_dict)
+        
 
     def getSudokuSolution(self,solution):
         return([i for i in solution if i > 0])
@@ -78,6 +145,50 @@ class Solver:
     def solve(self):
         return self.dpll(self.cnf,self.literals)
         
+    def collateResults(self, answer, solution):
+
+        print('', end='\r')
+        # iterations = self.iteration
+        self.solution = list(set(solution))
+        self.sudoku_solution = self.getSudokuSolution(list(set(solution)))
+        self.result = answer
+
+        self.stats['n_iterations'] = self.iteration
+
+        self.stats['avg_n_cnf'] = statistics.mean(self.stats['n_cnf'])
+        self.stats['mode_n_cnf'] = get_all_modes(self.stats['n_cnf'])
+        self.stats['median_n_cnf'] = statistics.median(self.stats['n_cnf'])
+
+        self.stats['avg_n_literal'] = statistics.mean(self.stats['n_literal'])
+        self.stats['mode_n_literal'] = get_all_modes(self.stats['n_literal'])
+        self.stats['median_n_literal'] = statistics.median(self.stats['n_literal'])
+
+
+        self.stats['avg_n_ratio'] = statistics.mean(self.stats['n_ratio'])
+        self.stats['mode_n_ratio'] = get_all_modes(self.stats['n_ratio'])
+        self.stats['median_n_ratio'] = statistics.median(self.stats['n_ratio'])
+
+        try:
+            self.stats['ratio_of_avgs'] = self.stats['avg_n_cnf'] / self.stats['avg_n_literal']
+        except ZeroDivisionError:
+            self.stats['ratio_of_avgs'] = None
+        try:
+            self.stats['ratio_of_modes'] = self.stats['mode_n_cnf'] / self.stats['mode_n_literal']
+        except ZeroDivisionError:
+            self.stats['ratio_of_modes'] = None
+        try:
+            self.stats['ratio_of_medians'] = self.stats['median_n_cnf'] / self.stats['median_n_literal'] 
+        except ZeroDivisionError:
+            self.stats['ratio_of_medians'] = None
+            
+    def updateStats(self, cnf, literal):
+        n_cnf = len(cnf)
+        n_literal = len(literal)
+        ratio = n_cnf / n_literal
+        self.stats['n_cnf'].append(n_cnf)
+        self.stats['n_literal'].append(n_literal)
+        self.stats['n_ratio'].append(ratio)
+
 
     def dpll(self,cnf,literal, solution=[]):
         """
@@ -85,7 +196,7 @@ class Solver:
         """
         #update and print branch number
         self.iteration+=1
-        print(self.iteration, end = '\r')
+        print(f'Iteration number: {self.iteration}', end = '\r')
 
         
  
@@ -109,31 +220,22 @@ class Solver:
                 cnf,literal,selected =self.unit_p(cnf, literal)
                 current_selection.append(selected)
 
-        n_cnf = len(cnf)
-        n_literal = len(literal)
-        ratio = n_cnf / n_literal
-        self.avg_ratio = self.avg_ratio + ratio
+        self.updateStats(cnf,literal)
         if self.debug_print:
             print('unit clauses and pure literals processed')
             print('cnf')
             print(cnf)
             print('literals')
             print(literal)
-            print(f'Current clause - literal ratio: {ratio}')
+            # print(f'Current clause - literal ratio: {ratio}')
 
         solution = solution+current_selection
         #check trivial cases
         if [] in cnf:
-            self.solution = list(set(solution))
-            self.sudoku_solution = self.getSudokuSolution(list(set(solution)))
-            self.result = False
-            self.avg_ratio = self.avg_ratio / self.iteration
+            self.collateResults(False, solution)
             return False
         if not cnf:
-            self.solution = list(set(solution))
-            self.sudoku_solution = self.getSudokuSolution(list(set(solution)))
-            self.result = True
-            self.avg_ratio = self.avg_ratio / self.iteration
+            self.collateResults(True, solution)
             return True
 
         #select literal using chosen

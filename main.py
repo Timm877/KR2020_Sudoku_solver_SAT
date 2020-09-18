@@ -9,12 +9,13 @@ def main():
     parser.add_argument('-hr', '--hueristic',
                          help=f'Hueristic to be used with dpll. Options are: {heuristic_list}',
                          default='most_common_negative')
-    parser.add_argument('-v', '--verbose',help='Print out dpll steps (not advisable with big problems)', type = bool,
+    parser.add_argument('-v', '--verbose',help='Prints out dpll steps (not advisable with big problems)', type = bool,
                         default=False)
+    parser.add_argument('-d', '--draw', help = 'Saves image of original problem and solved sudoku board', type = bool, default= False)
 
 
     args = parser.parse_args()
-    run_dpll(problem_path = args.dimacs, hueristic = args.hueristic, rule_path =  args.rules,verbose= args.verbose)
+    run_dpll(problem_path = args.dimacs, hueristic = args.hueristic, rule_path =  args.rules,verbose= args.verbose, draw=args.draw)
 
 
 

@@ -101,9 +101,9 @@ branching_heuristics = {
         'DLCS': dynamic_largest_combined_sum, #AKA: most frequent (unsigned) variable
         'DLIS': dynamic_largest_individual_sum,
         'JEROSLOW_WANG': jeroslow_wang,
-        'most_common_positive':
-        getMostCommonLiteralPositive,
-        'most_common_negative':getMostCommonLiteralNegative
+        # 'most_common_positive':
+        # getMostCommonLiteralPositive,
+        'DLIS_negated':getMostCommonLiteralNegative
     }
 heuristic_list = list(branching_heuristics.keys())
 
