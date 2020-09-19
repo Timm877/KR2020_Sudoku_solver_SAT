@@ -155,32 +155,32 @@ class Solver:
         self.result = answer
 
         self.stats['n_iterations'] = self.iteration
+        if self.stats['n_cnf']:
+            self.stats['avg_n_cnf'] = statistics.mean(self.stats['n_cnf'])
+            self.stats['mode_n_cnf'] = get_all_modes(self.stats['n_cnf'])
+            self.stats['median_n_cnf'] = statistics.median(self.stats['n_cnf'])
 
-        self.stats['avg_n_cnf'] = statistics.mean(self.stats['n_cnf'])
-        self.stats['mode_n_cnf'] = get_all_modes(self.stats['n_cnf'])
-        self.stats['median_n_cnf'] = statistics.median(self.stats['n_cnf'])
-
-        self.stats['avg_n_literal'] = statistics.mean(self.stats['n_literal'])
-        self.stats['mode_n_literal'] = get_all_modes(self.stats['n_literal'])
-        self.stats['median_n_literal'] = statistics.median(self.stats['n_literal'])
+            self.stats['avg_n_literal'] = statistics.mean(self.stats['n_literal'])
+            self.stats['mode_n_literal'] = get_all_modes(self.stats['n_literal'])
+            self.stats['median_n_literal'] = statistics.median(self.stats['n_literal'])
 
 
-        self.stats['avg_n_ratio'] = statistics.mean(self.stats['n_ratio'])
-        self.stats['mode_n_ratio'] = get_all_modes(self.stats['n_ratio'])
-        self.stats['median_n_ratio'] = statistics.median(self.stats['n_ratio'])
+            self.stats['avg_n_ratio'] = statistics.mean(self.stats['n_ratio'])
+            self.stats['mode_n_ratio'] = get_all_modes(self.stats['n_ratio'])
+            self.stats['median_n_ratio'] = statistics.median(self.stats['n_ratio'])
 
-        try:
-            self.stats['ratio_of_avgs'] = self.stats['avg_n_cnf'] / self.stats['avg_n_literal']
-        except ZeroDivisionError:
-            self.stats['ratio_of_avgs'] = None
-        try:
-            self.stats['ratio_of_modes'] = self.stats['mode_n_cnf'] / self.stats['mode_n_literal']
-        except ZeroDivisionError:
-            self.stats['ratio_of_modes'] = None
-        try:
-            self.stats['ratio_of_medians'] = self.stats['median_n_cnf'] / self.stats['median_n_literal'] 
-        except ZeroDivisionError:
-            self.stats['ratio_of_medians'] = None
+            try:
+                self.stats['ratio_of_avgs'] = self.stats['avg_n_cnf'] / self.stats['avg_n_literal']
+            except ZeroDivisionError:
+                self.stats['ratio_of_avgs'] = None
+            try:
+                self.stats['ratio_of_modes'] = self.stats['mode_n_cnf'] / self.stats['mode_n_literal']
+            except ZeroDivisionError:
+                self.stats['ratio_of_modes'] = None
+            try:
+                self.stats['ratio_of_medians'] = self.stats['median_n_cnf'] / self.stats['median_n_literal'] 
+            except ZeroDivisionError:
+                self.stats['ratio_of_medians'] = None
             
     def updateStats(self, cnf):
         
