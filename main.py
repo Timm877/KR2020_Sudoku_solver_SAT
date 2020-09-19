@@ -8,7 +8,7 @@ def main():
     parser.add_argument('rules', help = 'Path to rules file for Sudoku')
     parser.add_argument('-hr', '--hueristic',
                          help=f'Hueristic to be used with dpll. Options are: {heuristic_list}',
-                         default='most_common_negative')
+                         default='DLCS')
     parser.add_argument('-v', '--verbose',help='Prints out dpll steps (not advisable with big problems)', type = bool,
                         default=False)
     parser.add_argument('-d', '--draw', help = 'Saves image of original problem and solved sudoku board', type = bool, default= False)
