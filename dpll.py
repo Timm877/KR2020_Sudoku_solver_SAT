@@ -74,6 +74,7 @@ def run_dpll(problem_path, hueristic, rule_path = None,  verbose = False, draw=F
 class Solver:
     def __init__(self, cnf,
                  hueristic = sudoku_heuristics.getMostCommonLiteralNegative ):
+        # print('Initializing')
         self.hueristic = hueristic
         self.sudoku_solution = []
         self.iteration = 0
@@ -143,7 +144,7 @@ class Solver:
         return([i for i in solution if i > 0])
 
     def solve(self):
-        return self.dpll(self.cnf,self.literals)
+        return self.dpll(self.cnf)
         
     def collateResults(self, answer, solution):
 
@@ -181,7 +182,9 @@ class Solver:
         except ZeroDivisionError:
             self.stats['ratio_of_medians'] = None
             
-    def updateStats(self, cnf, literal):
+    def updateStats(self, cnf):
+        
+        literal=list(set([item for sublist in cnf for item in sublist] ))
         n_cnf = len(cnf)
         n_literal = len(literal)
         ratio = n_cnf / n_literal
@@ -190,7 +193,7 @@ class Solver:
         self.stats['n_ratio'].append(ratio)
 
 
-    def dpll(self,cnf,literal, solution=[]):
+    def dpll(self,cnf, solution=[]):
         # self.updateStats(cnf,literal)
         # #check trivial cases
         # if [] in cnf:
@@ -205,10 +208,19 @@ class Solver:
         #update and print branch number
         self.iteration+=1
         print(f'Iteration number: {self.iteration}', end = '\r')
+
+        
+
+
         current_selection = []
 
         if self.debug_print:
-            self.do_debug_printing(cnf, literal, solution)
+            print('---------------------------')
+            print('Initial Solution')
+            print(solution)
+            print('cnf')
+            print(cnf)
+
 
         #Set all literals in unit clauses to true
         #Remove clauses that are true
@@ -218,20 +230,22 @@ class Solver:
         #         current_selection.append(selected)
 
         #Remove tautology
-        cnf, literal = self.removeTautology(cnf,literal)
+        cnf = self.removeTautology(cnf)
         
         #Do unit propogation
-        cnf,literal,selected =self.unitPropogation(cnf, literal)
+        cnf,selected =self.unitPropogation(cnf)
         current_selection = current_selection+selected  
 
         #set pure literals to true
-        # cnf,literal,_selected =self.setPureLiteral(cnf, literal)
-        # current_selection = current_selection+_selected   
-
-
-        self.updateStats(cnf,literal)
+        cnf,_selected =self.setPureLiteral(cnf)
+        current_selection = current_selection+_selected   
+        # print(literal == list(set([item for sublist in cnf for item in sublist] )))
+       
         if self.debug_print:
-            self.do_simplified_cnf_debug_printing(cnf, literal)
+            print('unit clauses and pure literals processed')
+            print('cnf')
+            print(cnf)
+
             # print(f'Current clause - literal ratio: {ratio}')
 
         solution = solution+current_selection
@@ -243,6 +257,7 @@ class Solver:
             self.collateResults(True, solution)
             return True
 
+        self.updateStats(cnf)
         #select literal using chosen
         t=self.hueristic(cnf)
        
@@ -265,32 +280,18 @@ class Solver:
         #     literal_2.remove(-t)
         
         #Split on t, try to solve the cnf with t and -t
-        branch1,literal_1,_=self.reduce(cnf,literal,t)
-        branch2,literal_2,_=self.reduce(cnf,literal,-t)
+        branch1,_=self.reduce(cnf,t)
+        branch2,_=self.reduce(cnf,-t)
 
         if self.debug_print:
             print('branch')
             print(branch1,'||', branch2 )
             print('current solutions')
             print(solution, '||' ,negated_branch_solution)
+
+
        
-        return(self.dpll(branch1,literal_1, solution=solution) or self.dpll(branch2,literal_2,solution=negated_branch_solution))
-
-    def do_simplified_cnf_debug_printing(self, cnf, literal):
-        print('unit clauses and pure literals processed')
-        print('cnf')
-        print(cnf)
-        print('literals')
-        print(literal)
-
-    def do_debug_printing(self, cnf, literal, solution):
-        print('---------------------------')
-        print('Initial Solution')
-        print(solution)
-        print('cnf')
-        print(cnf)
-        print('literals')
-        print(literal)
+        return(self.dpll(branch1, solution=solution) or self.dpll(branch2,solution=negated_branch_solution))
 
     def unitClauseExists(self,cnf):
         for clause in cnf:
@@ -298,7 +299,7 @@ class Solver:
                 return True
         return False
 
-    def unitPropogation(self,cnf,literal):
+    def unitPropogation(self,cnf):
         """
         Set all litreal in unit clauses to true
         Do unit propogation
@@ -309,7 +310,7 @@ class Solver:
 
             #check for a unit clause and add to list
             #select literal from unit clause (t1)
-            unit_clauses = []
+            # unit_clauses = []
             _cnf = []
             for clause in cnf[::-1]:
                 if len(clause)==1:
@@ -317,17 +318,17 @@ class Solver:
                     break
             
             #reduce cnf with respect to literal (t1)
-            cnf, literal, t1 = self.reduce(cnf,literal,t1)
+            cnf, t1 = self.reduce(cnf,t1)
             selected.append(t1)
             #remove that literal (t1) from literal list
-            if t1 in literal:
-                literal.remove(t1)
+            # if t1 in literal:
+            #     literal.remove(t1)
 
 
             # return new cnf, literals, literals that were selected
-        return (cnf,literal, selected)
+        return (cnf, selected)
    
-    def reduce(self,cnf,literal,t):
+    def reduce(self,cnf,t):
         """
         Assumes literal t is true
         does unit propogation after setting t to true
@@ -350,10 +351,10 @@ class Solver:
                 _cnf.remove(clause)
                 _cnf.append([x for x in clause if x != -t])
 
-        if t in literal:
-                literal.remove(t)
+        # if t in literal:
+        #         literal.remove(t)
         
-        return _cnf,literal,t
+        return _cnf,t
         
     def isTautology(self,clause):
         for literal in clause:
@@ -361,22 +362,26 @@ class Solver:
                 return(True)
         return(False)    
     
-    def removeTautology(self,cnf,literal):
+    def removeTautology(self,cnf):
         for clause in cnf:
             # t = isTautology(clause):
             if self.isTautology(clause):
                 cnf.remove(clause)
+        # literal = list(set([item for sublist in cnf for item in sublist] ))
+        return(cnf)
+
+
+    def setPureLiteral(self,cnf):
         literal = list(set([item for sublist in cnf for item in sublist] ))
-        return(cnf,literal)
-
-
-    def setPureLiteral(self,cnf,literal):
         selection = []
+        
         for t in literal:
             if not -t in literal:
-                cnf, literal, selected = self.reduce(cnf,literal,t)
-                selection.append(t)
-        return(cnf,literal,selection)
+                cnf, selected = self.reduce(cnf,t)
+                selection.append(selected)
+        # literal = list(set([item for sublist in cnf for item in sublist] ))
+        # print(literal == list(set([item for sublist in cnf for item in sublist] )))
+        return(cnf,selection)
 
 
 def dimacs_to_cnf(full_problem):
