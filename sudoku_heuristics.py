@@ -39,16 +39,6 @@ def branching_heuristics_collection(heuristic):
         sys.exit("ERROR: '{}' Unknown/Unimplemented branching heuristic.".format(heuristic) +
                  "\nImplemented heuristics: {}".format(branching_heuristics.keys()))
 
-
-
-def getMostCommonLiteralPositive(cnf):
-        """
-        Finds and returns the literal that occurs the most in cnf
-        """
-        merged = list(itertools.chain(*cnf))    
-        
-        return max(set(merged), key=merged.count)
-
 def getMostCommonLiteralNegative(cnf):
         """
         Finds and returns the negative of literal that occurs the most in cnf
@@ -57,7 +47,6 @@ def getMostCommonLiteralNegative(cnf):
         
         return max(set(merged), key=merged.count)*-1
          
-
 
 def get_literal_occurrence_frequency(cnf_formula):
     merged = list(itertools.chain.from_iterable(cnf_formula))
@@ -132,9 +121,6 @@ branching_heuristics = {
         'DLIS': dynamic_largest_individual_sum,
         'JEROSLOW_WANG': jeroslow_wang,
         'JEROSLOW_WANG_TWO_SIDED': jeroslow_wang_two_sided,
-
-        'most_common_positive':
-        getMostCommonLiteralPositive,
         'most_common_negative':getMostCommonLiteralNegative
     }
 heuristic_list = list(branching_heuristics.keys())

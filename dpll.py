@@ -205,20 +205,10 @@ class Solver:
         #update and print branch number
         self.iteration+=1
         print(f'Iteration number: {self.iteration}', end = '\r')
-
-        
-
-
         current_selection = []
 
         if self.debug_print:
-            print('---------------------------')
-            print('Initial Solution')
-            print(solution)
-            print('cnf')
-            print(cnf)
-            print('literals')
-            print(literal)
+            self.do_debug_printing(cnf, literal, solution)
 
         #Set all literals in unit clauses to true
         #Remove clauses that are true
@@ -238,13 +228,10 @@ class Solver:
         # cnf,literal,_selected =self.setPureLiteral(cnf, literal)
         # current_selection = current_selection+_selected   
 
+
         self.updateStats(cnf,literal)
         if self.debug_print:
-            print('unit clauses and pure literals processed')
-            print('cnf')
-            print(cnf)
-            print('literals')
-            print(literal)
+            self.do_simplified_cnf_debug_printing(cnf, literal)
             # print(f'Current clause - literal ratio: {ratio}')
 
         solution = solution+current_selection
@@ -286,10 +273,24 @@ class Solver:
             print(branch1,'||', branch2 )
             print('current solutions')
             print(solution, '||' ,negated_branch_solution)
-
-
        
         return(self.dpll(branch1,literal_1, solution=solution) or self.dpll(branch2,literal_2,solution=negated_branch_solution))
+
+    def do_simplified_cnf_debug_printing(self, cnf, literal):
+        print('unit clauses and pure literals processed')
+        print('cnf')
+        print(cnf)
+        print('literals')
+        print(literal)
+
+    def do_debug_printing(self, cnf, literal, solution):
+        print('---------------------------')
+        print('Initial Solution')
+        print(solution)
+        print('cnf')
+        print(cnf)
+        print('literals')
+        print(literal)
 
     def unitClauseExists(self,cnf):
         for clause in cnf:
