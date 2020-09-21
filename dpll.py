@@ -1,12 +1,13 @@
-import itertools
-import glob
-import random
 import time
-import sudoku_heuristics
+
 import draw_sudoku
+import sudoku_heuristics
 import statistics
 from collections import Counter
-from copy import deepcopy
+
+SUDOKU_RULES_DIMACS  = 'sudoku_rules_DIMACS.txt'
+SUDOKU_EXAMPLE_DIMACS  = 'sudoku_example_DIMACS.txt'
+
 
 def get_all_modes(a):
     c = Counter(a)  
@@ -14,7 +15,7 @@ def get_all_modes(a):
     mode = {key for key, count in c.items() if count == mode_count}
     return list(mode)[0]
 
-def hasUnitClause(cnf):
+def has_unit_clause(cnf):
     for clause in cnf:
         if len(clause) == 1:
                 return(True)
@@ -24,61 +25,59 @@ class split:
     def __init__(self,cnf,literal,branch):
         pass
 
-def run_dpll(problem_path, hueristic, rule_path = None,  verbose = False, draw=False, show_stats=True):
-    full_problem = get_dimacs(example_path=problem_path,
-                          rules_path=rule_path)
-    
+def run_dpll(problem_path, append_rules = False, heuristic = "RANDOM", verbose = False, draw=False, show_stats=True):
+    full_problem = get_dimacs(problem_path, append_rules)
     cnf = dimacs_to_cnf(full_problem)
 
     if show_stats:
         start = time.time()
-    chosen_huerestic = sudoku_heuristics.branching_heuristics_collection(hueristic)
-    solver = Solver(cnf, hueristic= chosen_huerestic)
+    chosen_heuristic = sudoku_heuristics.branching_heuristics_collection(heuristic)
+    solver = Solver(cnf, heuristic= chosen_heuristic)
     solver.debug_print = verbose
     
     if show_stats:
-        print(f'SOlving DPLL with huerestic: {hueristic}')
+        print(f'Solving DPLL with heuristic: {heuristic}')
     
     solver.solve()
     stats = solver.getRelevantStats()
+
     if show_stats:
-        print('ANSWER:')
-        print(solver.result)
-        print('--------------------------')
-        print('NUMBER OF ITERATIONS:')
-        print(solver.iteration)
-        
-        print('TIME TAKEN:')
-        print(time.time()-start)
-        print('Relevant Statistics:')
-        print(stats)
+        print_statistics(solver, start, stats)
 
-    print('Solution:')
-    print(solver.solution)
-    
+    print('Solution:\n', solver.solution)
+
     if draw:
-        board = draw_sudoku.Draw()
-        solved_board = f"{problem_path}_{hueristic}.jpg"
-        initial_board = f'{problem_path}_{hueristic}_initial_problem.jpg'
-        board.draw(solver.sudoku_solution,filename=solved_board)
-        
-        initial_problem = dimacs_to_cnf(get_dimacs(example_path=problem_path,
-                                rules_path=None))
-
-        initial_problem = [item for sublist in initial_problem for item in sublist] 
-    
-        # initial_board = draw_sudoku.Draw()
-        board.draw(initial_problem,filename=initial_board)
-
-        print(f'Solution output: {solved_board}\nInitial problem: {initial_board}')
+        draw_sudoku_board(heuristic, problem_path, solver)
 
     return(solver,solver.result,stats)
 
+
+def draw_sudoku_board(heuristic, problem_path, solver):
+    board = draw_sudoku.Draw()
+    solved_board = f"{problem_path}_{heuristic}.jpg"
+    initial_board = f'{problem_path}_{heuristic}_initial_problem.jpg'
+    board.draw(solver.sudoku_solution, filename=solved_board)
+    initial_problem = dimacs_to_cnf(get_dimacs(example_path=problem_path,
+                                               rules_path=None))
+    initial_problem = [item for sublist in initial_problem for item in sublist]
+    # initial_board = draw_sudoku.Draw()
+    board.draw(initial_problem, filename=initial_board)
+    print(f'Solution output: {solved_board}\nInitial problem: {initial_board}')
+
+
+def print_statistics(solver, start, stats):
+    print('ANSWER: \n', solver.result)
+    print('--------------------------')
+    print('NUMBER OF ITERATIONS: \n', solver.iteration)
+    print('TIME TAKEN:\n', time.time() - start)
+    print('Relevant Statistics: \n', stats)
+
+
 class Solver:
     def __init__(self, cnf,
-                 hueristic = sudoku_heuristics.getMostCommonLiteralNegative ):
+                 heuristic = sudoku_heuristics.most_common_literal_negative):
         # print('Initializing')
-        self.hueristic = hueristic
+        self.heuristic = heuristic
         self.sudoku_solution = []
         self.iteration = 0
         self.result = None
@@ -196,60 +195,30 @@ class Solver:
         self.stats['n_ratio'].append(ratio)
 
 
-    def dpll(self,cnf, solution=[]):
-        # self.updateStats(cnf,literal)
-        # #check trivial cases
-        # if [] in cnf:
-        #     self.collateResults(False, solution)
-        #     return False
-        # if not cnf:
-        #     self.collateResults(True, solution)
-        #     return True
-        """
-        Function implements dpll algo
-        """
-        #update and print branch number
+    def dpll(self, cnf, solution=[]):
+
         self.iteration+=1
         print(f'Iteration number: {self.iteration}', end = '\r')
-
-        
-
 
         current_selection = []
 
         if self.debug_print:
-            print('---------------------------')
-            print('Initial Solution')
-            print(solution)
-            print('cnf')
-            print(cnf)
+            self.debug_print_solution(cnf, solution)
 
-
-        #Set all literals in unit clauses to true
-        #Remove clauses that are true
-        # Remove true literals from all clauses 
-        # while self.unitClauseExists(cnf):
-        #         cnf,literal,selected =self.unitPropogation(cnf, literal)
-        #         current_selection.append(selected)
-
-        #Remove tautology
+        # Remove tautology
         cnf = self.removeTautology(cnf)
         
-        #Do unit propogation
+        # Do unit propogation
         cnf,selected =self.unitPropogation(cnf)
         current_selection = current_selection+selected  
 
-        #set pure literals to true
+        # set pure literals to true
         cnf,_selected =self.setPureLiteral(cnf)
-        current_selection = current_selection+_selected   
-        # print(literal == list(set([item for sublist in cnf for item in sublist] )))
-       
-        if self.debug_print:
-            print('unit clauses and pure literals processed')
-            print('cnf')
-            print(cnf)
 
-            # print(f'Current clause - literal ratio: {ratio}')
+        current_selection = current_selection+_selected   
+
+        if self.debug_print:
+            self.debug_print_cnf(cnf)
 
         solution = solution+current_selection
         #check trivial cases
@@ -262,39 +231,42 @@ class Solver:
 
         self.updateStats(cnf)
         #select literal using chosen
-        t=self.hueristic(cnf)
+        t=self.heuristic(cnf)
        
         if self.debug_print:
-            print('selected literal')
-            print(t)
+            print('selected literal:', t)
 
         #update solutions
         negated_branch_solution =  list(set(solution+[-t]))
         
         solution = list(set(solution+[t]))
-        # remove selected literal from list of literals
-        # literal_1 = literal
-        # literal_2 = deepcopy(literal) 
-
-        # if t in literal_1:
-        #     literal_1.remove(t)
-
-        # if -t in literal_2:
-        #     literal_2.remove(-t)
         
         #Split on t, try to solve the cnf with t and -t
         branch1,_=self.reduce(cnf,t)
         branch2,_=self.reduce(cnf,-t)
 
         if self.debug_print:
-            print('branch')
-            print(branch1,'||', branch2 )
-            print('current solutions')
-            print(solution, '||' ,negated_branch_solution)
+            self.debug_print_branches(branch1, branch2, negated_branch_solution, solution)
 
+        return(self.dpll(branch1, solution=solution) or self.dpll(branch2, solution=negated_branch_solution))
 
-       
-        return(self.dpll(branch1, solution=solution) or self.dpll(branch2,solution=negated_branch_solution))
+    def debug_print_branches(self, branch1, branch2, negated_branch_solution, solution):
+        print('branch')
+        print(branch1, '||', branch2)
+        print('current solutions')
+        print(solution, '||', negated_branch_solution)
+
+    def debug_print_cnf(self, cnf):
+        print('unit clauses and pure literals processed. \n')
+        print('cnf: \n')
+        print(cnf)
+
+    def debug_print_solution(self, cnf, solution):
+        print('---------------------------')
+        print('Initial Solution')
+        print(solution)
+        print('cnf')
+        print(cnf)
 
     def unitClauseExists(self,cnf):
         for clause in cnf:
@@ -388,8 +360,6 @@ class Solver:
 
 
 def dimacs_to_cnf(full_problem):
-  '''This function converts a dimacs file to a cnf statement'''
-
   clauses = []
   lines = full_problem.split("\n")
   for line in lines:
@@ -400,45 +370,14 @@ def dimacs_to_cnf(full_problem):
   return clauses
 
 
-def get_dimacs(example_path='sudoku_example_DIMACS.txt', rules_path='sudoku_rules_DIMACS.txt'):
-  '''Reads initial problem + rules of sudoku and outputs dimacs file containing rules + sudoku example'''
-
-  sud_dimacs = open(example_path, 'r').read()
-
-  rules_string = ''
-   
-  if rules_path:
-    rules_string = open(rules_path, 'r').read()
-
-  full_problem = sud_dimacs + rules_string 
+def get_dimacs(sudoku_file_path = SUDOKU_EXAMPLE_DIMACS, append_rules = True):
+  print("Resolving SAT " + sudoku_file_path + ":\n")
+  sudoku_problem_dimacs = open(sudoku_file_path, 'r').read()
+  full_problem = sudoku_problem_dimacs
+  if append_rules:
+      sudoku_rules_dimacs = open(SUDOKU_RULES_DIMACS, 'r').read()
+      full_problem = full_problem + sudoku_rules_dimacs
 
   return full_problem
 
 
-def sud_txt_to_dimacs(example_path='top95.sdk.txt'):
-    '''This function reads .txt (txtfile one line of 81 characters per puzzle, '.' for free space)
-    Translate txtfile to DIMACS. Puts Dimacs file in folder sud_examples
-    top95.sdk.txt is a set of 95 "hard" puzzles, favoured benchmark set of a web forum for sudokus'''
-
-    all_sudokus = open(example_path, 'r').read()
-    all_sudokus = all_sudokus.split("\n")
-    sudnr = 1
-
-    for sudoku in all_sudokus:
-        sud_file = open(r'C:\Users\Tim de Boer\Desktop\Coderen\Sudoku_solver_group3\Sudoku_solver_group3\sud_examples\sudoku_%d'%sudnr, 'w+')
-        row = 1
-        column = 1
-
-        for place in sudoku:
-            if place.isdigit():
-                sud_file.write(str(row) + str(column) + str(place) + ' 0\n')   
-
-            column += 1
-
-            if column == 10:
-                column = 1
-                row += 1    
-            
-        sudnr += 1
-
-    return all_sudokus

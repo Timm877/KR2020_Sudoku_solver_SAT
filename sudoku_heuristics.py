@@ -5,6 +5,8 @@ import itertools
 
 ######################################################################################################
 # Splitting heuristics:
+# RANDOM
+######################################################################################################
 # DLCS (Dynamic Largest Combined Sum):
 #   - Pick v with largest CP(v)+CN(v) (= most frequent v)
 #   - If CP(v)>CN(v) then v=1 else v=0
@@ -22,30 +24,16 @@ from typing import List, Any
 
 
 def branching_heuristics_collection(heuristic):
-    
     try:
         return branching_heuristics[heuristic]
     except:
         sys.exit("ERROR: '{}' Unknown/Unimplemented branching heuristic.".format(heuristic) +
                  "\nImplemented heuristics: {}".format(branching_heuristics.keys()))
 
-
-
-def getMostCommonLiteralPositive(cnf):
-        """
-        Finds and returns the literal that occurs the most in cnf
-        """
-        merged = list(itertools.chain(*cnf))    
-        
-        return max(set(merged), key=merged.count)
-
-def getMostCommonLiteralNegative(cnf):
-        """
-        Finds and returns the negative of literal that occurs the most in cnf
-        """
-        merged = list(itertools.chain(*cnf))    
-        
-        return max(set(merged), key=merged.count)*-1
+def most_common_literal_negative(cnf_formula):
+# Returns the negative of literal that occurs the most in cnf
+    merged = list(itertools.chain(*cnf_formula))
+    return max(set(merged), key=merged.count)*-1
          
 
 
@@ -101,9 +89,7 @@ branching_heuristics = {
         'DLCS': dynamic_largest_combined_sum, #AKA: most frequent (unsigned) variable
         'DLIS': dynamic_largest_individual_sum,
         'JEROSLOW_WANG': jeroslow_wang,
-        # 'most_common_positive':
-        # getMostCommonLiteralPositive,
-        'DLIS_negated':getMostCommonLiteralNegative
+        'DLIS_negated':most_common_literal_negative
     }
 heuristic_list = list(branching_heuristics.keys())
 
