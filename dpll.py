@@ -52,11 +52,14 @@ def run_dpll(problem_path, hueristic, rule_path = None,  verbose = False, draw=F
         print(time.time()-start)
         print('Relevant Statistics:')
         print(stats)
+
+    print('Solution:')
+    print(solver.solution)
     
     if draw:
         board = draw_sudoku.Draw()
-        solved_board = f"{hueristic}.jpg"
-        initial_board = f'{hueristic}_initial_problem.jpg'
+        solved_board = f"{problem_path}_{hueristic}.jpg"
+        initial_board = f'{problem_path}_{hueristic}_initial_problem.jpg'
         board.draw(solver.sudoku_solution,filename=solved_board)
         
         initial_problem = dimacs_to_cnf(get_dimacs(example_path=problem_path,
