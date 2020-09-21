@@ -49,14 +49,31 @@ def get_absolute_literal_occurrence_frequency(cnf_formula):
     return max(set(x), key=x.count)
 
 
-def get_weighted_frequency(cnf_formula, weight=2):
+def get_weighted_frequency(cnf_formula, weight=2, is_absolute=False):
     counter = {}
     for clause in cnf_formula:
+        if (is_absolute): literal = abs(literal)
         for literal in clause:
             if literal in counter:
                 counter[literal] += weight ** -len(clause)
             else:
                 counter[literal] = weight ** -len(clause)
+    return counter
+
+def get_difference_counter(formula):
+    counter = {}
+    for clause in formula:
+        for literal in clause:
+            if literal in counter:
+                if literal > 0:
+                    counter[literal] += 1
+                else:
+                    counter[-literal] += - 1
+            else:
+                if literal > 0:
+                    counter[literal] = 1
+                else:
+                    counter[-literal] = - 1
     return counter
 
 
@@ -77,6 +94,9 @@ def jeroslow_wang(cnf_formula):
     counter = get_weighted_frequency(cnf_formula)
     return max(counter, key=counter.get)
 
+def jeroslow_wang_two_sided(formula):
+    counter = get_weighted_frequency(formula, True)
+    return max(counter, key=counter.get)
 
 def dynamic_largest_individual_sum(cnf_formula):
     return get_literal_occurrence_frequency(cnf_formula)
@@ -89,6 +109,7 @@ branching_heuristics = {
         'DLCS': dynamic_largest_combined_sum, #AKA: most frequent (unsigned) variable
         'DLIS': dynamic_largest_individual_sum,
         'JEROSLOW_WANG': jeroslow_wang,
+        'JEROSLOW_WANG_TWO_SIDED': jeroslow_wang_two_sided,
         'DLIS_negated':most_common_literal_negative
     }
 heuristic_list = list(branching_heuristics.keys())
