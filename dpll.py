@@ -385,7 +385,9 @@ def get_dimacs(sudoku_file_path=SUDOKU_EXAMPLE_DIMACS, rules_path=None):
     sudoku_problem_dimacs = open(sudoku_file_path, 'r').read()
     full_problem = sudoku_problem_dimacs
     if rules_path:
-        sudoku_rules_dimacs = open(rules_path, 'r').read()
-        full_problem = full_problem + sudoku_rules_dimacs
-
+        if rules_path != 'none':
+            sudoku_rules_dimacs = open(rules_path, 'r').read()
+            full_problem = full_problem + sudoku_rules_dimacs
+        elif rules_path == 'none':
+            print('No sudoku rules provided')
     return full_problem
