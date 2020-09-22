@@ -6,8 +6,8 @@ import statistics
 from collections import Counter
 
 
-def run_dpll(problem_path, append_rules=False, heuristic="RANDOM", verbose=False, draw=False, show_stats=True):
-    full_problem = get_dimacs(problem_path, append_rules)
+def run_dpll(problem_path, rules_path, heuristic="RANDOM", verbose=False, draw=False, show_stats=True):
+    full_problem = get_dimacs(problem_path, rules_path)
     cnf = dimacs_to_cnf(full_problem)
 
     if show_stats:
@@ -30,11 +30,17 @@ def run_dpll(problem_path, append_rules=False, heuristic="RANDOM", verbose=False
     if verbose:
         print('Solution:\n', solver.solution)
 
-    output_file_name = problem_path + ".out"
+    output_file_name = f"{problem_path.strip('.txt')}_{heuristic}.out"
+    print(f'Solved DIMACS stored at: {output_file_name}')
     #    draw_sudoku_board(heuristic, problem_path, solver)
+    # print 
     with open(output_file_name , 'w') as file_handle:
-        if solver.solution: file_handle.writelines("%s 0\n" % place for place in solver.solution)
+        if solver.result:
+            file_handle.writelines("%s 0\n" % place for place in solver.solution)
         else: file_handle.write("")
+
+    if draw:
+        draw_sudoku_board(heuristic, problem_path, solver)
 
     return solver, solver.result, stats
 
@@ -60,10 +66,10 @@ class split:
 
 def draw_sudoku_board(heuristic, problem_path, solver):
     board = draw_sudoku.Draw()
-    solved_board = f"{problem_path}_{heuristic}.jpg"
-    initial_board = f'{problem_path}_{heuristic}_initial_problem.jpg'
+    solved_board = f"{problem_path.strip('.txt')}_{heuristic}.jpg"
+    initial_board = f"{problem_path.strip('.txt')}_{heuristic}_initial_problem.jpg"
     board.draw(solver.sudoku_solution, filename=solved_board)
-    initial_problem = dimacs_to_cnf(get_dimacs(example_path=problem_path,
+    initial_problem = dimacs_to_cnf(get_dimacs(sudoku_file_path = problem_path,
                                                rules_path=None))
     initial_problem = [item for sublist in initial_problem for item in sublist]
     # initial_board = draw_sudoku.Draw()
@@ -374,12 +380,12 @@ SUDOKU_RULES_DIMACS = 'sudoku_rules_DIMACS.txt'
 SUDOKU_EXAMPLE_DIMACS = 'sudoku_example_DIMACS.txt'
 
 
-def get_dimacs(sudoku_file_path=SUDOKU_EXAMPLE_DIMACS, append_rules=True):
+def get_dimacs(sudoku_file_path=SUDOKU_EXAMPLE_DIMACS, rules_path=None):
     print("Resolving SAT " + sudoku_file_path + ":\n")
     sudoku_problem_dimacs = open(sudoku_file_path, 'r').read()
     full_problem = sudoku_problem_dimacs
-    if append_rules:
-        sudoku_rules_dimacs = open(SUDOKU_RULES_DIMACS, 'r').read()
+    if rules_path:
+        sudoku_rules_dimacs = open(rules_path, 'r').read()
         full_problem = full_problem + sudoku_rules_dimacs
 
     return full_problem
