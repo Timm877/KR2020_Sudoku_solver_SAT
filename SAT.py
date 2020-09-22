@@ -29,13 +29,15 @@ def main():
     parser.add_argument('-v', '--verbose',help='Prints out dpll steps (not advisable with big problems)', type = bool,
                         default=False)
     parser.add_argument('-d', '--draw', help = 'Saves image of original problem and solved sudoku board. '
-                                               'Only works with Sudoku SAT problem', type = bool, default= True)
+                                               'Only works with Sudoku SAT problem' +
+                                               '\nIf you wish to output an image pass in true', type = bool, default= False)
 
     args = parser.parse_args()
 
 
 
     branching_heuristic =  heuristics_dict[args.branching_heuristic]
+  
 
     run_dpll(problem_path = args.input_file,
              heuristic= branching_heuristic,
