@@ -11,10 +11,8 @@ def sud_txt_to_dimacs(example_path='top95.sdk.txt'):
     sudnr = 1
 
     for sudoku in all_sudokus:
-        pathToSudokuExamples = pathlib.Path(__file__).parent / 'sud_examples'
-        print("PATH: \n" \
-             "pathToSudokuExamples")
-        sud_file = open(r'C:\Users\Tim de Boer\Desktop\Coderen\Sudoku_solver_group3\Sudoku_solver_group3\sud_examples\sudoku_%d'%sudnr, 'w+')
+
+        sud_file = open(r'../sud_examples/sudoku_%d'%sudnr, 'w+')
         row = 1
         column = 1
 

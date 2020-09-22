@@ -27,10 +27,14 @@ def run_dpll(problem_path, append_rules=False, heuristic="RANDOM", verbose=False
     if show_stats:
         print_statistics(solver, start, stats)
 
-    print('Solution:\n', solver.solution)
+    if verbose:
+        print('Solution:\n', solver.solution)
 
-    if draw:
-        draw_sudoku_board(heuristic, problem_path, solver)
+    output_file_name = problem_path + ".out"
+    #    draw_sudoku_board(heuristic, problem_path, solver)
+    with open(output_file_name , 'w') as file_handle:
+        if solver.solution: file_handle.writelines("%s 0\n" % place for place in solver.solution)
+        else: file_handle.write("")
 
     return solver, solver.result, stats
 
