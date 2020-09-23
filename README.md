@@ -1,14 +1,44 @@
-# SAT solver with DPLL group 3
-[Link to google docs for tasks, research question and planning.](https://docs.google.com/document/d/1F_wTVEpV_9wb2ctD3C9XG-5DSfD8SNUY4EB0c1tK0Lg/edit?usp=sharing)
+# SAT solver with DPLL, group 3, KR course 2020
             
-This program receives an input of satisfabilty problem presented in Conjunctive Normal Form (CNF) and encoded in DIMACS format.
-If the problem is satisfiable, one possible solution is output in the resulting file.
+This program expects a SAT problem presented as CNF Formula in DIMACS format as an input.
+It applies a DPLL algorithm with optional choice of branching heuristic, and finds a solution. 
+
+If the problem is satisfiable, one solution will be saved in the output file.
 If the problem is not satisfiable, the output will contain an empty file.
 
-## Algorithm
-DPLL Algorithm with several different branching heuristics. The problem is defined in CNF form
+# Usage:
+```bash
+python SAT.py Sn sudoku_dimacs_file 
 
+python SAT.py [-h] [-r RULES] [-v VERBOSE] [-d DRAW] [-f FLAGGED_OUTPUT] branching_heuristic input_file
+```
+Branching Heuristics code mappings:
+```
+'S1': 'RANDOM',                  
+'S2': 'DLIS',
+'S3': 'DLCS',
+'S4': 'JEROSLOW_WANG',
+'S5': 'JEROSLOW_WANG_TWO_SIDED'
+'S6': 'DLIS_negated',
+```
+There are additional useful options which can be requested, for instance the following command will
+ - look for a solution to the SAT encoded in sudoku_13 file
+ - draw the found sudoku solution 
+ - safe the output file with name indicating the heuristic (in this example, sudoku_13_JEROSLOW_WANG_TWO_SIDED.out)
 ```python
+python SAT.py S5 sudoku_13 -f=True -d=True
+```
+By default, we assume that the input file is a complete CNF formula, encoded in DIMACS format.
+Also in case the input represents a Sudoku game, we therefore expect the input file to include the encoded rules.  
+However, for convenience, if the input is a Sudoku game, there is an option to only provide the game formula, without the Sudoku rules, or provide Rules as a separate file.
+
+Please use a -help flag for more options  
+ 
+## The Algorithm
+DPLL Algorithm with several different branching heuristics. 
+The problem Φ is defined as a CNF formula 
+
+```
    function DPLL(Φ)
     if Φ is a consistent set of literals then
         return true;
@@ -23,63 +53,12 @@ DPLL Algorithm with several different branching heuristics. The problem is defin
  ```
 
 ## Branching heuristics
-
-RANDOM
 ```
-DLCS (Dynamic Largest Combined Sum):
-   - Pick v with largest CP(v)+CN(v) (= most frequent v)
-   - If CP(v)>CN(v) then v=1 else v=0
+S1 = Random
+S2 = DLIS (Dynamic Largest Individual Sum)   
+S3 = DLCS (Dynamic Largest Combined Sum)
+S4 = Jeroslow-Wang 
+S5 = Two sided Jeroslow-Wang
+S6 = DLIS-negated (Our own heuristic which will negate the litaral chosen with DLIS)
 ```
  
-DLIS (Dynamic Largest Individual Sum):
-```
- •Pick v with largest CP(v) or largest CN(v)
- •If CP(v)>CN(v) then v=1 else v=0
-```
-JEROSLOW-WANG (exponentially higher weight to literals in shorter clauses):
-```
- Compute for every clause ω and every variable l in each phase:
- J(l) := Σ((2)^(-|ω|)) ∀l ∈ ω
- Choose a variable l that maximizes J(l).
-```
-JEROSLOW-WANG-TWO-SIDED:
-
- 
-# Usage:
-```bash
-python SAT.py Sn sudoku_dimacs_file 
-
-python SAT.py [-h] [-r RULES] [-v VERBOSE] [-d DRAW] [-flagged FLAGGED_OUTPUT] branching_heuristic input_file
-```
-Branching Heuristics code mappings:
-```
-'S1': 'RANDOM',                  
-'S2': 'DLIS_negated',
-'S3': 'DLIS',
-'S4': 'DLCS',
-'S5': 'JEROSLOW_WANG',
-'S6': 'JEROSLOW_WANG_TWO_SIDED'
-```
-
-#read files and convert to cnf
-
-
-#instantiate solver
-
-solution_dpll = dpll.Solver(clauses1)
-
-#Run solver
-
-answer = solution_dpll.solve()
-
-solution_dpll.iteration gives the number of iterations taken to reach the solution
-
-solution_dpll.solution outputs the solution as a list of literals
-
-
-solution_dpll.debug_flag = True will print out step by step information about the solver
-
-solution_dpll.negated_first = True will compute the branch with negated literal fist
-Example: if dpll splits on literal t, then it will solve the branch with -t first
-
-Check notebook in notebooks folder for a better demonstration

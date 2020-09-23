@@ -4,11 +4,11 @@ import sys
 from dpll import run_dpll
 
 heuristics_dict = {'S1': 'RANDOM',
-                   'S2': 'DLIS_negated',
-                   'S3': 'DLIS',
-                   'S4': 'DLCS',
-                   'S5': 'JEROSLOW_WANG',
-                   'S6': 'JEROSLOW_WANG_TWO_SIDED'}
+                   'S2': 'DLIS',
+                   'S3': 'DLCS',
+                   'S4': 'JEROSLOW_WANG',
+                   'S5': 'JEROSLOW_WANG_TWO_SIDED',
+                   'S6': 'DLIS_negated'}
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
                                              'Only works with Sudoku SAT problem' +
                                              '\nIf you wish to output an image pass in true', type=bool,
                         default=False)
-    parser.add_argument('-flagged', '--flagged_output', help='True value will append the Heuristic '
+    parser.add_argument('-f', '--flagged_output', help='True value will append the Heuristic '
                                                              'identifier to the output file name', type=bool,
                         default=False)
 
