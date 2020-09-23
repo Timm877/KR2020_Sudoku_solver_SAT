@@ -8,13 +8,12 @@ from draw_sudoku import *
 from sudoku_heuristics import branching_heuristics_collection
 
 full_problem = get_dimacs(sudoku_file_path=r'sud_examples/sudoku_2',
-                          append_rules=True)
+                          rules_path=None)
 
 cnf = dimacs_to_cnf(full_problem)
 
 
-initial_problem = dimacs_to_cnf(get_dimacs(sudoku_file_path=r'sud_examples/sudoku_2',
-                          append_rules=False))
+initial_problem = dimacs_to_cnf(get_dimacs(sudoku_file_path=r'sud_examples/sudoku_2'))
 
 initial_problem = [item for sublist in initial_problem for item in sublist]
 

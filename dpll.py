@@ -6,7 +6,8 @@ import statistics
 from collections import Counter
 
 
-def run_dpll(problem_path, rules_path, heuristic="RANDOM", verbose=False, draw=False, show_stats=True):
+def run_dpll(problem_path, rules_path, heuristic="RANDOM", verbose=False, draw=False, show_stats=True,
+             flagged_output=True):
     full_problem = get_dimacs(problem_path, rules_path)
     cnf = dimacs_to_cnf(full_problem)
 
@@ -30,19 +31,25 @@ def run_dpll(problem_path, rules_path, heuristic="RANDOM", verbose=False, draw=F
     if verbose:
         print('Solution:\n', solver.solution)
 
-    output_file_name = f"{problem_path.strip('.txt')}_{heuristic}.out"
-    print(f'Solved DIMACS stored at: {output_file_name}')
-    #    draw_sudoku_board(heuristic, problem_path, solver)
-    # print 
-    with open(output_file_name , 'w') as file_handle:
-        if solver.result:
-            file_handle.writelines("%s 0\n" % place for place in solver.solution)
-        else: file_handle.write("")
+    output_solution(flagged_output, heuristic, problem_path, solver)
 
     if draw:
         draw_sudoku_board(heuristic, problem_path, solver)
 
     return solver, solver.result, stats
+
+
+def output_solution(flagged_output, heuristic, problem_path, solver):
+    if flagged_output:
+        output_file_name = f"{problem_path.strip('.txt')}_{heuristic}.out"
+    else:
+        output_file_name = f"{problem_path.strip('.txt')}.out"
+    print(f'Solved DIMACS stored at: {output_file_name}')
+    with open(output_file_name, 'w') as file_handle:
+        if solver.result:
+            file_handle.writelines("%s 0\n" % place for place in solver.solution)
+        else:
+            file_handle.write("")
 
 
 def get_all_modes(a):
@@ -69,7 +76,7 @@ def draw_sudoku_board(heuristic, problem_path, solver):
     solved_board = f"{problem_path.strip('.txt')}_{heuristic}.jpg"
     initial_board = f"{problem_path.strip('.txt')}_{heuristic}_initial_problem.jpg"
     board.draw(solver.sudoku_solution, filename=solved_board)
-    initial_problem = dimacs_to_cnf(get_dimacs(sudoku_file_path = problem_path,
+    initial_problem = dimacs_to_cnf(get_dimacs(sudoku_file_path=problem_path,
                                                rules_path=None))
     initial_problem = [item for sublist in initial_problem for item in sublist]
     # initial_board = draw_sudoku.Draw()
