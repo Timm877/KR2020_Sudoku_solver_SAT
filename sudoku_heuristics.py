@@ -86,7 +86,7 @@ def unique_literals(cnf_formula: list()):
     return unique_values
 
 
-###
+### JEROSLOW-WANG
 # Compute for every clause ω and every variable l  (in each phase):
 # J(l) := Σ((2)^(-|ω|)) ∀l ∈ ω
 # Choose a variable l that maximizes J(l).

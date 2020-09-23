@@ -1,22 +1,67 @@
-# Sudoku solver group 3
+# SAT solver with DPLL group 3
 [Link to google docs for tasks, research question and planning.](https://docs.google.com/document/d/1F_wTVEpV_9wb2ctD3C9XG-5DSfD8SNUY4EB0c1tK0Lg/edit?usp=sharing)
-
-In main file (now called test_dpll), we have functions:
-- dimacs_to_cnf which converts a dimacs file to a list with the cnf statement of that file.
-- get_dimacs:   opens and reads problem file and rule file
-                If you want to try a new problem with no rules, you can set rule_path to None
-
             
-dpll.py is a file which takes as input a cnf statement, applies DPLL algorithm and (currently) only outputs True if SAT and False if UNSAT.
+This program receives an input of satisfabilty problem presented in Conjunctive Normal Form (CNF) and encoded in DIMACS format.
+If the problem is satisfiable, one possible solution is output in the resulting file.
+If the problem is not satisfiable, the output will contain an empty file.
 
+## Algorithm
+DPLL Algorithm with several different branching heuristics. The problem is defined in CNF form
+
+```python
+   function DPLL(Φ)
+    if Φ is a consistent set of literals then
+        return true;
+    if Φ contains an empty clause then
+        return false;
+    for every unit clause {l} in Φ do
+       Φ ← unit-propagate(l, Φ);
+    for every literal l that occurs pure in Φ do
+       Φ ← pure-literal-assign(l, Φ);
+    l ← choose-literal(Φ);
+    return DPLL(Φ ∧ {l}) or DPLL(Φ ∧ {not(l)});
+ ```
+
+## Branching heuristics
+
+RANDOM
+```
+DLCS (Dynamic Largest Combined Sum):
+   - Pick v with largest CP(v)+CN(v) (= most frequent v)
+   - If CP(v)>CN(v) then v=1 else v=0
+```
+ 
+DLIS (Dynamic Largest Individual Sum):
+```
+ •Pick v with largest CP(v) or largest CN(v)
+ •If CP(v)>CN(v) then v=1 else v=0
+```
+JEROSLOW-WANG (exponentially higher weight to literals in shorter clauses):
+```
+ Compute for every clause ω and every variable l in each phase:
+ J(l) := Σ((2)^(-|ω|)) ∀l ∈ ω
+ Choose a variable l that maximizes J(l).
+```
+JEROSLOW-WANG-TWO-SIDED:
+
+ 
 # Usage:
+```bash
+python SAT.py Sn sudoku_dimacs_file 
 
+python SAT.py [-h] [-r RULES] [-v VERBOSE] [-d DRAW] [-flagged FLAGGED_OUTPUT] branching_heuristic input_file
+```
+Branching Heuristics code mappings:
+```
+'S1': 'RANDOM',                  
+'S2': 'DLIS_negated',
+'S3': 'DLIS',
+'S4': 'DLCS',
+'S5': 'JEROSLOW_WANG',
+'S6': 'JEROSLOW_WANG_TWO_SIDED'
+```
 
 #read files and convert to cnf
-
-full_problem1 = dpll.get_dimacs(example_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_example_DIMACS.txt',
-                          rules_path=r'F:\Documents\VU\KR\Sudoku_solver_group3\sudoku_rules_DIMACS.txt')
-clauses1 = dpll.dimacs_to_cnf(full_problem1)
 
 
 #instantiate solver

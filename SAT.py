@@ -12,8 +12,6 @@ heuristics_dict = {'S1': 'RANDOM',
 
 
 def main():
-    # for example: SAT -S2 sudoku_nr_10 ,
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument('branching_heuristic',
@@ -34,7 +32,7 @@ def main():
                                              '\nIf you wish to output an image pass in true', type=bool,
                         default=False)
     parser.add_argument('-flagged', '--flagged_output', help='True value will append the Heuristic '
-                                                         'identifier to the output file name', type=bool,
+                                                             'identifier to the output file name', type=bool,
                         default=False)
 
     args = parser.parse_args()
