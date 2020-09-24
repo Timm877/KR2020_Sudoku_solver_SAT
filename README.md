@@ -1,4 +1,7 @@
 # SAT solver with DPLL, group 3, KR course 2020
+
+Python version: 3.6+
+Requirements: pygame version 1.9.6 (run command "pip install pygame==1.9.6" to install it onto python)
             
 This program expects a SAT problem presented as CNF Formula in DIMACS format as an input.
 It applies a DPLL algorithm with optional choice of branching heuristic, and finds a solution. 
@@ -10,7 +13,7 @@ If the problem is not satisfiable, the output will contain an empty file.
 ```bash
 python SAT.py Sn sudoku_dimacs_file 
 
-python SAT.py [-h] [-r RULES] [-v VERBOSE] [-d DRAW] [-f FLAGGED_OUTPUT] branching_heuristic input_file
+python SAT.py branching_heuristic input_file [-h] [-r RULES] [-v VERBOSE] [-d DRAW] [-f FLAGGED_OUTPUT] 
 ```
 Branching Heuristics code mappings:
 ```
