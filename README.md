@@ -1,6 +1,8 @@
 # SAT solver with DPLL, group 3, KR course 2020
 
 Python version: 3.6+
+
+
 Requirements: pygame version 1.9.6 (run command "pip install pygame==1.9.6" to install it onto python)
             
 This program expects a SAT problem presented as CNF Formula in DIMACS format as an input.
